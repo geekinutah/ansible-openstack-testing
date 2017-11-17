@@ -1,0 +1,219 @@
+heat_template_version: '2016-04-08'
+
+description: >
+    This template is used to deploy a staging-scale openstack-ansible
+    deployment. Currently supports Ubuntu 16.04.
+
+
+parameters:
+    sshkey:
+        type: string
+        description: Name of an existing key pair
+        default: default
+        constraints:
+          - custom_constraint: nova.keypair
+    image:
+        type: string
+        description: Image ID or image name to use
+        default: Ubuntu1604-Latest
+        constraints:
+          - custom_constraint: glance.image
+    num_of_computes:
+        type: number
+        description: Total number of compute nodes to deploy
+        default: 2
+        constraints:
+            - range: { min: 1, max: 6 }
+              description: Minimum of 1, max of 6 computes
+    num_of_controllers:
+        type: number
+        description: Total number of controllers to deploy
+        default: 3
+        constraints:
+            - range: { min: 1, max: 5 }
+              description: Minimum of 1, max of 5
+    num_of_osds:
+        type: number
+        description: Total number of Ceph OSD nodes to deploy
+        default: 3
+        constraints:
+            - range: { min: 1, max: 9 }
+              description: Minimum of 1, max of 9
+    ceph_repl_factor:
+        type: number
+        description: The Ceph replication factor
+        default: 1
+        constraints:
+            - range: { min: 1, max: 3 }
+              description: Minimum of 1, max of 3
+    vip_addr:
+        type: string
+        description: VIP address if desired
+        default: "0.0.0.0"
+    provider_net:
+        type: string
+        description: Choose a provider network for deployer access
+        default: provider_net_3202
+        constraints:
+            - custom_constraint: neutron.network
+resources:
+    mgmt_net:
+        type: OS::Neutron::Net
+        properties:
+            name: 'mgmt'
+    storage_net:
+        type: OS::Neutron::Net
+        properties:
+            name: 'storage'
+    vlan_net:
+        type: OS::Neutron::Net
+        properties:
+            name: 'vlan'
+    vxlan_net:
+        type: OS::Neutron::Net
+        properties:
+            name: 'vxlan'
+    repl_net:
+        type: OS::Neutron::Net
+        properties:
+            name: 'repl'
+
+    mgmt_sub:
+        type: OS::Neutron::Subnet
+        properties:
+            network_id: { get_resource: mgmt_net }
+            cidr: "192.168.10.0/24"
+            gateway_ip: "192.168.10.1"
+            allocation_pools:
+                - start: '192.168.10.11'
+                  end: '192.168.10.200'
+            dns_nameservers:
+                - '10.48.4.247'
+                - '10.50.112.247'
+    storage_sub:
+        type: OS::Neutron::Subnet
+        properties:
+            network_id: { get_resource: storage_net }
+            cidr: "192.168.11.0/24"
+            gateway_ip: "192.168.11.1"
+            allocation_pools:
+                - start: '192.168.11.11'
+                  end: '192.168.11.200'
+            dns_nameservers:
+                - '10.48.4.247'
+                - '10.50.112.247'
+    vlan_sub:
+        type: OS::Neutron::Subnet
+        properties:
+            network_id: { get_resource: vlan_net }
+            cidr: "192.168.12.0/24"
+            gateway_ip: "192.168.12.1"
+            allocation_pools:
+                - start: '192.168.12.11'
+                  end: '192.168.12.200'
+            dns_nameservers:
+                - '10.48.4.247'
+                - '10.50.112.247'
+    vxlan_sub:
+        type: OS::Neutron::Subnet
+        properties:
+            network_id: { get_resource: vxlan_net }
+            cidr: "192.168.13.0/24"
+            gateway_ip: "192.168.13.1"
+            allocation_pools:
+                - start: '192.168.13.11'
+                  end: '192.168.13.200'
+            dns_nameservers:
+                - '10.48.4.247'
+                - '10.50.112.247'
+    repl_sub:
+        type: OS::Neutron::Subnet
+        properties:
+            network_id: { get_resource: repl_net }
+            cidr: "192.168.14.0/24"
+            gateway_ip: "192.168.14.1"
+            allocation_pools:
+                - start: '192.168.14.11'
+                  end: '192.168.14.200'
+            dns_nameservers:
+                - '10.48.4.247'
+                - '10.50.112.247'
+
+    provisioner:
+        type: OS::Nova::Server
+        depends_on: mgmt_sub 
+        properties:
+            name: "ansible-provisioner"
+            image: { get_param: image }
+            flavor: "m4.small"
+            key_name: { get_param: sshkey }
+            networks: 
+                - network: { get_param: provider_net } 
+                - network: { get_resource: mgmt_net }
+
+    computes:
+        type: OS::Heat::ResourceGroup
+        depends_on: mgmt_sub 
+        properties:
+            count: { get_param: num_of_computes }
+            resource_def:
+                type: OS::Nova::Server
+                properties:
+                    name: "compute-%index%"
+                    image: { get_param: image }
+                    flavor: "m4.small"
+                    key_name: { get_param: sshkey }
+                    networks: 
+                        - network: { get_resource: mgmt_net }
+                        - network: { get_resource: storage_net }
+                        - network: { get_resource: vlan_net }
+                        - network: { get_resource: vxlan_net }
+
+    controllers:
+        type: OS::Heat::ResourceGroup
+        depends_on: mgmt_sub 
+        properties:
+            count: { get_param: num_of_controllers }
+            resource_def:
+                type: OS::Nova::Server
+                properties:
+                    name: "controller-%index%"
+                    image: { get_param: image }
+                    flavor: "m4.small"
+                    key_name: { get_param: sshkey }
+                    networks: 
+                        - network: { get_resource: mgmt_net }
+                        - network: { get_resource: storage_net }
+                        - network: { get_resource: vlan_net }
+                        - network: { get_resource: vxlan_net }
+
+    osds:
+        type: OS::Heat::ResourceGroup
+        depends_on: mgmt_sub 
+        properties:
+            count: { get_param: num_of_controllers }
+            resource_def:
+                type: OS::Nova::Server
+                properties:
+                    name: "osd-%index%"
+                    image: { get_param: image }
+                    flavor: "m4.small"
+                    key_name: { get_param: sshkey }
+                    networks: 
+                        - network: { get_resource: mgmt_net }
+                        - network: { get_resource: storage_net }
+                        - network: { get_resource: repl_net }
+                    user_data:
+                        str_replace:
+                            template: |
+                                #!/bin/sh
+
+                                echo "REPLICATION_FACTOR: REPLF" > /root/ceph_replication_factor
+                            params:
+                                REPLF: { get_param: ceph_repl_factor }
+
+
+outputs:
+    provisioner_ip:
+        description: Ansible Provisioner IP
+        value: { get_attr: [ provisioner, first_address ] }
