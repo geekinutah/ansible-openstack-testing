@@ -1,0 +1,3 @@
+auto br-vlan
+iface br-vlan inet dhcp
+  bridge_ports ens5

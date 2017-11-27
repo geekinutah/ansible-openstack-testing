@@ -1,0 +1,3 @@
+auto br-storage
+iface br-storage inet dhcp
+  bridge_ports ens4

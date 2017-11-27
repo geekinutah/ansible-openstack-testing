@@ -1,0 +1,3 @@
+auto br-repl
+iface br-repl inet dhcp
+  bridge_ports ens5

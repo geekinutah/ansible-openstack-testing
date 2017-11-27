@@ -1,0 +1,3 @@
+auto br-vxlan
+iface br-vxlan inet dhcp
+  bridge_ports ens6
