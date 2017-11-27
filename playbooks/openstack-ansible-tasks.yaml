@@ -1,0 +1,120 @@
+---
+- hosts: all
+  tasks: 
+  - name: Insert apt proxy
+    template: 
+      src: templates/apt-proxy.conf
+      dest: /etc/apt/apt.conf.d/90proxy
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Upgrade everything
+    apt: upgrade=dist update_cache=true
+
+  - name: Install base packages
+    apt: name={{item}} state=installed
+    notify: restart ntpd
+    with_items:
+      - bridge-utils
+      - debootstrap
+      - ifenslave
+      - ifenslave-2.6
+      - lsof
+      - lvm2
+      - ntp
+      - ntpdate
+      - openssh-server
+      - sudo
+      - tcpdump
+      - vlan
+      - python
+
+  - name: Add modules
+    lineinfile:
+      path: /etc/modules
+      line: '8021q'
+      state: present
+  
+  - name: Remove cloud-init networking
+    file:
+      path: /etc/network/interfaces.d/50-cloud-init.cfg
+      state: absent
+
+  - name: Fix dhclient conf file
+    template:
+      src: templates/dhclient.conf
+      dest: /etc/dhcp/dhclient.conf
+      owner: root
+      group: root
+      mode: 0644
+
+- hosts: osds
+  tasks:
+  - name: Configure OSD networks
+    template:
+      src: templates/br-{{item}}
+      dest: /etc/network/interfaces.d/br-{{item}}.cfg
+      owner: root
+      group: root
+      mode: 0644
+    with_items:
+      - mgmt
+      - storage
+      - repl
+
+  - name: Comment out old networks
+    replace:
+      path: "/etc/network/interfaces.d/ens{{ item }}.cfg"
+      regexp: '^(?!#)(.*)'
+      replace: '#\1'
+    with_sequence: start=3 end=5
+
+- hosts: controllers
+  tasks:
+  - name: Configure controller networks
+    template:
+      src: templates/br-{{item}}
+      dest: /etc/network/interfaces.d/br-{{item}}.cfg
+      owner: root
+      group: root
+      mode: 0644
+    with_items:
+      - mgmt
+      - storage
+      - vlan
+      - vxlan
+
+  - name: Comment out old networks
+    replace:
+      path: "/etc/network/interfaces.d/ens{{ item }}.cfg"
+      regexp: '^(?!#)(.*)'
+      replace: '#\1'
+    with_sequence: start=3 end=6
+
+- hosts: computes
+  tasks:
+  - name: Configure compute networks
+    template:
+      src: templates/br-{{item}}
+      dest: /etc/network/interfaces.d/br-{{item}}.cfg
+      owner: root
+      group: root
+      mode: 0644
+    with_items:
+      - mgmt
+      - storage
+      - vlan
+      - vxlan
+
+  - name: Comment out old networks
+    replace:
+      path: "/etc/network/interfaces.d/ens{{ item }}.cfg"
+      regexp: '^(?!#)(.*)'
+      replace: '#\1'
+    with_sequence: start=3 end=6
+
+  handlers:
+    - name: restart ntpd
+      service: name=ntp state=restarted
+    #- name: schedule reboot
