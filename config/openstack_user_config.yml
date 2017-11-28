@@ -56,10 +56,10 @@
 #   - Storage network on 172.29.244.0/22. Data plane for storage services such
 #     as cinder and swift.
 #
-# cidr_networks:
-   container: 192.168.10.0/24
-   storage: 192.168.11.0/24
-   tunnel: 192.168.12.0/24
+cidr_networks:
+    container: 192.168.10.0/24
+    storage: 192.168.11.0/24
+    tunnel: 192.168.12.0/24
 #
 # Example:
 #
@@ -88,11 +88,10 @@
 # also reserves 231-254 in the last octet at the high end of the range for
 # network device management.
 #
-# used_ips:
-#   - 172.29.236.1
-#   - "172.29.236.100,172.29.236.200"
-#   - "172.29.240.100,172.29.240.200"
-#   - "172.29.244.100,172.29.244.200"
+used_ips:
+    - "192.168.10.200 192.168.10.254"
+    - "192.168.11.200 192.168.11.254"
+    - "192.168.12.200 192.168.12.254"
 #
 # --------
 #
@@ -300,6 +299,83 @@
 #         net_name: "flat"
 #
 # --------
+
+global_overrides:
+    cidr_networks: *cidr_networks
+    #internal_lb_vip_address: ???
+    #external_lb_vip_address: ???
+    tunnel_bridge: "br-vxlan"
+    management_bridge: "br-mgmt"
+    provider_networks:
+        - network:
+            container_bridge: "br-mgmt"
+            container_type: "veth"
+            container_interface: "eth0"
+            ip_from_q: "container"
+            type: "raw"
+            group_binds:
+              - all_containers
+              - hosts
+            is_container_address: true
+            is_ssh_address: true
+        - network:
+            container_bridge: "br-vxlan"
+            container_type: "veth"
+            container_interface: "eth1"
+            ip_from_q: "tunnel"
+            type: "vxlan"
+            range: "1:1000"
+            net_name: "vxlan"
+            group_binds:
+              - neutron_linuxbridge_agent
+        - network:
+            container_bridge: "br-vlan"
+            container_type: "veth"
+            container_interface: "eth2"
+            host_bind_override: "ens5"
+            type: "flat"
+            net_name: "flat"
+            group_binds:
+              - neutron_linuxbridge_agent
+         - network:
+            container_bridge: "br-storage"
+            container_type: "veth"
+            container_interface: "eth3"
+            ip_from_q: "storage"
+            type: "raw"
+            group_binds:
+              - glance_api
+              - cinder_api
+              - cinder_volume
+              - nova_compute
+              - ceph-osd
+
+
+
+_infra_hosts: &infra_hosts
+    infra0:
+        ip: 192.168.10.18
+    infra1:
+        ip: 192.168.10.17
+    infra2:
+        ip: 192.168.10.20
+
+_compute_hosts: &compute_hosts
+    compute0:
+        ip: 192.168.10.22
+    compute1:
+        ip: 192.168.10.19
+    compute2:
+        ip: 192.168.10.21
+
+_osd_hosts: &osd_hosts
+    osd0:
+        ip: 192.168.10.15
+    osd1:
+        ip: 192.168.10.13
+    osd2:
+        ip: 192.168.10.16
+
 #
 # Level: shared-infra_hosts (required)
 # List of target hosts on which to deploy shared infrastructure services
@@ -325,6 +401,9 @@
 #   infra3:
 #     ip: 172.29.236.103
 #
+
+shared-infra_hosts: *infra_hosts
+
 # --------
 #
 # Level: repo-infra_hosts (required)
@@ -351,6 +430,8 @@
 #   infra3:
 #     ip: 172.29.236.103
 #
+repo-infra_hosts: @infra_hosts
+
 # --------
 #
 # Level: os-infra_hosts (required)
@@ -377,6 +458,8 @@
 #   infra3:
 #     ip: 172.29.236.103
 #
+os-infra_hosts: *infra_hosts
+
 # --------
 #
 # Level: identity_hosts (required)
@@ -403,6 +486,8 @@
 #   infra3:
 #     ip: 172.29.236.103
 #
+identity_hosts: *infra_hosts
+
 # --------
 #
 # Level: network_hosts (required)
@@ -429,6 +514,8 @@
 #   infra3:
 #     ip: 172.29.236.103
 #
+network_hosts: *infra_hosts
+
 # --------
 #
 # Level: compute_hosts (optional)
@@ -451,6 +538,8 @@
 #   compute1:
 #     ip: 172.29.236.121
 #
+compute_hosts: *compute_hosts
+
 # --------
 #
 # Level: ironic-compute_hosts (optional)
@@ -499,6 +588,8 @@
 #   infra3:
 #     ip: 172.29.236.103
 #
+storage-infra_hosts: *infra_hosts
+
 # --------
 #
 # Level: storage_hosts (required)
@@ -690,6 +781,9 @@
 #           rbd_secret_uuid: "{{ cinder_ceph_client_uuid }}"
 #
 #
+#
+storage_hosts: *infra_hosts
+
 # --------
 #
 # Level: log_hosts (required)
@@ -711,6 +805,10 @@
 #   log1:
 #     ip: 172.29.236.171
 #
+log_hosts:
+    log0:
+        ip: 192.168.10.14
+
 # --------
 #
 # Level: haproxy_hosts (optional)
@@ -739,6 +837,8 @@
 #   lb2:
 #     ip: 172.29.236.101
 #
+haproxy_hosts: *infra_hosts
+
 # In case of the above scenario(multiple hosts),HAProxy can be deployed in a
 # highly-available manner by installing keepalived.
 #
