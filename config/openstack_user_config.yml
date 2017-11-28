@@ -783,6 +783,8 @@ storage-infra_hosts: *infra_hosts
 #
 #
 storage_hosts: *infra_hosts
+ceph-osd_hosts: *osd_hosts
+ceph-mon_hosts: *infra_hosts
 
 # --------
 #
