@@ -74,11 +74,11 @@ _compute_hosts: &compute_hosts
 
 _osd_hosts: &osd_hosts
   osd0:
-  ip: 192.168.10.15
+    ip: 192.168.10.15
   osd1:
-  ip: 192.168.10.13
+    ip: 192.168.10.13
   osd2:
-  ip: 192.168.10.16
+    ip: 192.168.10.16
 
 shared-infra_hosts: *infra_hosts
 
