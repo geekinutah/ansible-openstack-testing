@@ -123,7 +123,8 @@ nova_libvirt_images_rbd_pool: vms
 proxy_env_url: http://192.168.10.14:8888/
 
 ## (1) This sets up a permanent environment, used during and after deployment:
-no_proxy_env: "localhost,127.0.0.1,{{ internal_lb_vip_address }},{{ external_lb_vip_address }},{% for host in groups['all_containers'] %}{{ hostvars[host]['container_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
+#no_proxy_env: "localhost,127.0.0.1,{{ internal_lb_vip_address }},{{ external_lb_vip_address }},{% for host in groups['all_containers'] %}{{ hostvars[host]['container_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
+no_proxy_env: "localhost,127.0.0.1,{% for host in groups['all_containers'] %}{{ hostvars[host]['container_address'] }}{% if not loop.last %},{% endif %}{% endfor %}"
 global_environment_variables:
     HTTP_PROXY: "{{ proxy_env_url }}"
     HTTPS_PROXY: "{{ proxy_env_url }}"

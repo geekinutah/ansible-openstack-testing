@@ -12,6 +12,7 @@ used_ips:
 global_overrides:
   tunnel_bridge: "br-vxlan"
   management_bridge: "br-mgmt"
+  internal_lb_address: "192.168.10.199"
   provider_networks:
     - network:
       container_bridge: "br-mgmt"
