@@ -1,0 +1,23 @@
+heat_template_version: '2016-04-08'
+
+description: >
+    OpenStack server
+
+resources:
+  server:
+    type: OS::Nova::Server
+    properties:
+    name: "compute-%index%"
+    image: { get_param: image }
+    flavor: "m4.medium"
+    key_name: { get_param: sshkey }
+    networks: 
+      - network: { get_resource: mgmt_net }
+      - network: { get_resource: storage_net }
+      - network: { get_resource: vlan_net }
+      - network: { get_resource: vxlan_net }
+outputs:
+  server_id:
+    value: { get_resource: server }
+  server_ip:
+    value: { get_attr: [server, networks, mgmt_net, 0] }

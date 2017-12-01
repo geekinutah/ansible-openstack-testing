@@ -4,7 +4,6 @@ description: >
     This template is used to deploy a staging-scale openstack-ansible
     deployment. Currently supports Ubuntu 16.04.
 
-
 parameters:
     sshkey:
         type: string
@@ -145,7 +144,7 @@ resources:
         properties:
             name: "ansible-provisioner"
             image: { get_param: image }
-            flavor: "m4.small"
+            flavor: "m4.medium"
             key_name: { get_param: sshkey }
             networks: 
                 - network: { get_param: provider_net } 
@@ -157,17 +156,7 @@ resources:
         properties:
             count: { get_param: num_of_computes }
             resource_def:
-                type: OS::Nova::Server
-                properties:
-                    name: "compute-%index%"
-                    image: { get_param: image }
-                    flavor: "m4.small"
-                    key_name: { get_param: sshkey }
-                    networks: 
-                        - network: { get_resource: mgmt_net }
-                        - network: { get_resource: storage_net }
-                        - network: { get_resource: vlan_net }
-                        - network: { get_resource: vxlan_net }
+                type: openstack_server.yaml
 
     controllers:
         type: OS::Heat::ResourceGroup
@@ -175,17 +164,7 @@ resources:
         properties:
             count: { get_param: num_of_controllers }
             resource_def:
-                type: OS::Nova::Server
-                properties:
-                    name: "controller-%index%"
-                    image: { get_param: image }
-                    flavor: "m4.small"
-                    key_name: { get_param: sshkey }
-                    networks: 
-                        - network: { get_resource: mgmt_net }
-                        - network: { get_resource: storage_net }
-                        - network: { get_resource: vlan_net }
-                        - network: { get_resource: vxlan_net }
+                type: openstack_server.yaml
 
     osds:
         type: OS::Heat::ResourceGroup
@@ -193,27 +172,13 @@ resources:
         properties:
             count: { get_param: num_of_controllers }
             resource_def:
-                type: OS::Nova::Server
-                properties:
-                    name: "osd-%index%"
-                    image: { get_param: image }
-                    flavor: "m4.small"
-                    key_name: { get_param: sshkey }
-                    networks: 
-                        - network: { get_resource: mgmt_net }
-                        - network: { get_resource: storage_net }
-                        - network: { get_resource: repl_net }
-                    user_data:
-                        str_replace:
-                            template: |
-                                #!/bin/sh
-
-                                echo "REPLICATION_FACTOR: REPLF" > /root/ceph_replication_factor
-                            params:
-                                REPLF: { get_param: ceph_repl_factor }
-
+                type: osd_server.yaml
 
 outputs:
     provisioner_ip:
         description: Ansible Provisioner IP
         value: { get_attr: [ provisioner, first_address ] }
+    servers:
+        value: { get_attr: [ servers, outputs, server_id] }
+    server_ips:
+        value: { get_attr: [ servers, outputs, server_ip] }
