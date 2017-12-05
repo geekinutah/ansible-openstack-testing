@@ -1,8 +1,8 @@
 ---
 - hosts: all
-  tasks: 
+  tasks:
   - name: Insert apt proxy
-    template: 
+    template:
       src: templates/apt-proxy.conf
       dest: /etc/apt/apt.conf.d/90proxy
       owner: root
@@ -29,13 +29,14 @@
       - tcpdump
       - vlan
       - python
+      - vim
 
   - name: Add modules
     lineinfile:
       path: /etc/modules
       line: '8021q'
       state: present
-  
+
   - name: Remove cloud-init networking
     file:
       path: /etc/network/interfaces.d/50-cloud-init.cfg
@@ -48,10 +49,11 @@
       owner: root
       group: root
       mode: 0644
-  
+
   - name: Remove noexec from tmpfs mount options
     replace:
         path: /etc/fstab
+        notify: remount tmpfs
         regexp: '(^tmpfs.*)noexec,(.*)'
         replace: '#\1#\2'
 
@@ -64,6 +66,20 @@
       owner: root
       group: root
       mode: 0644
+
+  - name: Install tinyproxy
+    apt: name=tinyproxy
+
+  - name: Configure tinyproxy
+    lineinfile:
+      path: /etc/tinyproxy.conf
+      insertafter: {{ item.insertafter }}
+      line: {{ item.line }}
+      state: present
+      notify: restart_tinyproxy
+    with_items:
+        - { line: 'Listen {{ inventory_hostname }}', insertafter: '#Listen' }
+        - { line: 'Allow 192.168.0.0/16', insertafter: 'Allow 127.0.0.1' }
 
 
 - hosts: osds
@@ -134,4 +150,9 @@
   handlers:
     - name: restart ntpd
       service: name=ntp state=restarted
-    #- name: schedule reboot
+
+    - name: restart tinyproxy
+      service: name=tinyproxy state=restarted
+
+    - name: remount tmpfs
+      shell:  'mount -o remount /tmp'
