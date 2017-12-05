@@ -73,8 +73,8 @@
   - name: Configure tinyproxy
     lineinfile:
       path: /etc/tinyproxy.conf
-      insertafter: {{ item.insertafter }}
-      line: {{ item.line }}
+      insertafter: "{{ item.insertafter }}"
+      line: "{{ item.line }}"
       state: present
       notify: restart_tinyproxy
     with_items:
