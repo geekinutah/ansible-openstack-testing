@@ -11,6 +11,8 @@
 
   - name: Upgrade everything
     apt: upgrade=dist update_cache=true
+    tags:
+      - deployer_bootstrap
 
   - name: Install base packages
     apt: name={{item}} state=installed
@@ -69,6 +71,8 @@
 
   - name: Install tinyproxy
     apt: name=tinyproxy state=installed
+    tags:
+      - deployer_bootstrap
 
   - name: Configure tinyproxy
     lineinfile:
@@ -76,7 +80,9 @@
       insertafter: "{{ item.insertafter }}"
       line: "{{ item.line }}"
       state: present
-      notify: restart_tinyproxy
+    notify: restart tinyproxy
+    tags:
+      - deployer_bootstrap
     with_items:
         - { line: "Listen {{ inventory_hostname }}", insertafter: '#Listen' }
         - { line: 'Allow 192.168.0.0/16', insertafter: 'Allow 127.0.0.1' }
