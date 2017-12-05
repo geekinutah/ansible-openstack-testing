@@ -48,6 +48,23 @@
       owner: root
       group: root
       mode: 0644
+  
+  - name: Remove noexec from tmpfs mount options
+    replace:
+        path: /etc/fstab
+        regexp: '(^tmpfs.*)noexec,(.*)'
+        replace: '#\1#\2'
+
+- hosts: deployer
+  tasks:
+  - name: Configure mgmt bridge
+    template:
+      src: templates/br-mgmt-deployer
+      dest: /etc/network/interfaces.d/br-mgmt.cfg
+      owner: root
+      group: root
+      mode: 0644
+
 
 - hosts: osds
   tasks:

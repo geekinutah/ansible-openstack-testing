@@ -1,0 +1,3 @@
+auto br-mgmt
+iface br-mgmt inet dhcp
+  bridge_ports ens4
