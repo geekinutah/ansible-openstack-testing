@@ -68,7 +68,7 @@
       mode: 0644
 
   - name: Install tinyproxy
-    apt: name=tinyproxy
+    apt: name=tinyproxy state=installed
 
   - name: Configure tinyproxy
     lineinfile:
@@ -78,7 +78,7 @@
       state: present
       notify: restart_tinyproxy
     with_items:
-        - { line: 'Listen {{ inventory_hostname }}', insertafter: '#Listen' }
+        - { line: "Listen {{ inventory_hostname }}", insertafter: '#Listen' }
         - { line: 'Allow 192.168.0.0/16', insertafter: 'Allow 127.0.0.1' }
 
 
