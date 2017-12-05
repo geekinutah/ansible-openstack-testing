@@ -1,4 +1,4 @@
-#!/usr/bin/env bash -x
+#!/usr/bin/env bash
 
 # Check to make sure OpenStack credentials are set
 if [ -z "$OS_PROJECT_ID" ]; then
