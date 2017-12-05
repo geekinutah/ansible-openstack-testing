@@ -3,7 +3,7 @@
 import json
 #from pprint import pprint
 
-files = {'provisioner': None, 'computes': None, 'osds': None,
+files = {'deployer': None, 'computes': None, 'osds': None,
         'controllers': None}
 
 for k in files.keys():
@@ -12,9 +12,9 @@ for k in files.keys():
         files[k] = j
         f.close()
 
-print('[provisioner]')
-print(files['provisioner']['output_value'])
-del(files['provisioner'])
+print('[deployer]')
+print(files['deployer']['output_value'])
+del(files['deployer'])
 
 for k in files.keys():
     print('[%s]' % k)

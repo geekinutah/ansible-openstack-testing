@@ -4,7 +4,7 @@ import json
 #from pprint import pprint
 from jinja2 import Template
 
-files = {'provisioner': None, 'computes': None, 'osds': None,
+files = {'deployer': None, 'computes': None, 'osds': None,
         'controllers': None}
 templates = {'jumphost': None, 'host': None}
 host_template = None
@@ -21,9 +21,9 @@ for k in files.keys():
         files[k] = j
         f.close()
 
-print(templates['jumphost'].render(ip=files['provisioner']['output_value']))
+print(templates['jumphost'].render(ip=files['deployer']['output_value']))
 
-del(files['provisioner'])
+del(files['deployer'])
 
 for k in files.keys():
     for i in range(0, len(files[k]['output_value'])):
@@ -46,8 +46,8 @@ for k in files.keys():
 #          u'output_value': [u'192.168.10.22',
 #                            u'192.168.10.20',
 #                            u'192.168.10.21']},
-# 'provisioner': {u'description': u'Ansible Provisioner IP',
-#                 u'output_key': u'provisioner_ip',
+# 'deployer': {u'description': u'Ansible Deployer IP',
+#                 u'output_key': u'deployer_ip',
 #                 u'output_value': u'10.42.36.209'}}
 #
 

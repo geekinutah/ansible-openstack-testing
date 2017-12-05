@@ -138,14 +138,14 @@ resources:
                 - '10.48.4.247'
                 - '10.50.112.247'
 
-    provisioner:
+    deployer:
         type: OS::Nova::Server
         depends_on: mgmt_sub 
         properties:
             flavor: "m4.medium"
             image: { get_param: image }
             key_name: { get_param: sshkey }
-            name: "ansible-provisioner"
+            name: "ansible-deployer"
             networks:
                 - network: { get_param: provider_net } 
                 - network: { get_resource: mgmt_net }
@@ -203,9 +203,9 @@ resources:
                         - network: { get_resource: repl_net }
 
 outputs:
-    provisioner_ip:
-        description: Ansible Provisioner IP
-        value: { get_attr: [ provisioner, first_address ] }
+    deployer_ip:
+        description: Ansible Deployer IP
+        value: { get_attr: [ deployer, first_address ] }
     compute_ips:
         description: Compute IPs
         value: { get_attr: [computes, server_ip] }
