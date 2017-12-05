@@ -23,7 +23,7 @@ ansible_prep:
 	ssh ansible-deployer "sudo sed -i 's/noexec,//g' /etc/fstab; sudo mount -oremount /tmp"
 	ssh ansible-deployer "cd /opt/openstack-ansible && sudo ./scripts/bootstrap-ansible.sh"
 	scp inventory ansible-deployer:./ 
-	ssh ansible-deployer "git clone git@github.com:geekinutah/ansible-openstack-testing.git"
+	ssh ansible-deployer "GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=no' git clone git@github.com:geekinutah/ansible-openstack-testing.git"
 	echo "Implement the rest of deployer automation"
 ansible_env_install:
 	echo "Implement me"
