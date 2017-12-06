@@ -203,6 +203,9 @@ resources:
                         - network: { get_resource: repl_net }
 
 outputs:
+    jumphost_ip:
+        description: Externally accessible jumphost address
+        value: { get_attr: [deployer, first_address] }
     deployer_ip:
         description: Ansible Deployer IP
         value: { get_attr: [ deployer, networks, mgmt, 0 ] }

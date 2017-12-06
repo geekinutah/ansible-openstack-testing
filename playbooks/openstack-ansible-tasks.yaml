@@ -87,6 +87,15 @@
         - { line: "Listen {{ inventory_hostname }}", insertafter: '#Listen' }
         - { line: 'Allow 192.168.0.0/16', insertafter: 'Allow 127.0.0.1' }
 
+  handlers:
+    - name: restart ntpd
+      service: name=ntp state=restarted
+
+    - name: restart tinyproxy
+      service: name=tinyproxy state=restarted
+
+    - name: remount tmpfs
+      shell:  'mount -o remount /tmp'
 
 - hosts: osds
   tasks:
@@ -153,12 +162,3 @@
       replace: '#\1'
     with_sequence: start=3 end=6
 
-  handlers:
-    - name: restart ntpd
-      service: name=ntp state=restarted
-
-    - name: restart tinyproxy
-      service: name=tinyproxy state=restarted
-
-    - name: remount tmpfs
-      shell:  'mount -o remount /tmp'
