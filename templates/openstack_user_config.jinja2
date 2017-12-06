@@ -1,0 +1,102 @@
+---
+cidr_networks:
+  container: {{ mgmt_cidr }}
+  storage: {{ storage_cidr }}
+  tunnel: {{ vxlan_cidr }}
+
+used_ips:
+  - {{ mgmt_reserved }}
+  - {{ storage_reserved }}
+  - {{ vxlan_reserved }}
+
+global_overrides:
+  tunnel_bridge: "br-vxlan"
+  management_bridge: "br-mgmt"
+  internal_lb_address: "{{ internal_lb_address }}"
+  provider_networks:
+    - network:
+      container_bridge: "br-mgmt"
+      container_type: "veth"
+      container_interface: "eth0"
+      ip_from_q: "container"
+      type: "raw"
+      group_binds:
+        - all_containers
+        - hosts
+      is_container_address: true
+      is_ssh_address: true
+    - network:
+      container_bridge: "br-vxlan"
+      container_type: "veth"
+      container_interface: "eth1"
+      ip_from_q: "tunnel"
+      type: "vxlan"
+      range: "1:1000"
+      net_name: "vxlan"
+      group_binds:
+        - neutron_linuxbridge_agent
+    - network:
+      container_bridge: "br-vlan"
+      container_type: "veth"
+      container_interface: "eth2"
+      host_bind_override: "ens5"
+      type: "flat"
+      net_name: "flat"
+      group_binds:
+        - neutron_linuxbridge_agent
+    - network:
+      container_bridge: "br-storage"
+      container_type: "veth"
+      container_interface: "eth3"
+      ip_from_q: "storage"
+      type: "raw"
+      group_binds:
+        - glance_api
+        - cinder_api
+        - cinder_volume
+        - nova_compute
+        - ceph-osd
+
+_infra_hosts: &infra_hosts
+{% for host in groups['controllers'] %}
+  infra{{ loop.index0 }}:
+    ip: {{ hostvars[host]['ansible_eth0']['ipv4']['address'] }}
+{% endfor % }
+
+_compute_hosts: &compute_hosts
+{% for host in groups['computes'] %}
+  compute{{ loop.index0 }}:
+    ip: {{ hostvars[host]['ansible_eth0']['ipv4']['address'] }}
+{% endfor % }
+
+_osd_hosts: &osd_hosts
+{% for host in groups['osds'] %}
+  osd{{ loop.index0 }}:
+    ip: {{ hostvars[host]['ansible_eth0']['ipv4']['address'] }}
+{% endfor % }
+
+ceph-mon_hosts: *infra_hosts
+
+ceph-osd_hosts: *osd_hosts
+
+compute_hosts: *compute_hosts
+
+haproxy_hosts: *infra_hosts
+
+identity_hosts: *infra_hosts
+
+log_hosts:
+  log0:
+    ip: {{ deployer_ip }}
+
+network_hosts: *infra_hosts
+
+os-infra_hosts: *infra_hosts
+
+repo-infra_hosts: *infra_hosts
+
+shared-infra_hosts: *infra_hosts
+
+storage-infra_hosts: *infra_hosts
+
+storage_hosts: *infra_hosts
