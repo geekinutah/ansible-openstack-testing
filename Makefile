@@ -20,11 +20,11 @@ ansible_deployer_prep:
 	ssh ansible-deployer "sudo apt-get update"
 	ssh ansible-deployer "sudo DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::=\"--force-confold\" --force-yes -fuy dist-upgrade"
 	ssh ansible-deployer "sudo apt-get install -y aptitude build-essential git ntp ntpdate python-dev iptables"
-	ssh ansible-deployer "sudo git clone -b 17.0.0.0b1 https://git.openstack.org/openstack/openstack-ansible /opt/openstack-ansible"
+	ssh ansible-deployer "if [ \! -d /opt/openstack-ansible ]; then sudo git clone -b 17.0.0.0b1 https://git.openstack.org/openstack/openstack-ansible /opt/openstack-ansible;fi"
 	ssh ansible-deployer "sudo sed -i 's/noexec,//g' /etc/fstab; sudo mount -oremount /tmp"
 	ssh ansible-deployer "cd /opt/openstack-ansible && sudo ./scripts/bootstrap-ansible.sh"
 	scp inventory ansible-deployer:./ 
-	ssh ansible-deployer "GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=no' git clone git@github.com:geekinutah/ansible-openstack-testing.git"
+	ssh ansible-deployer "if [ \! -d ansible-openstack-testing ]; then GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=no' git clone git@github.com:geekinutah/ansible-openstack-testing.git;fi"
 	ssh ansible-deployer "cd ansible-openstack-testing; cp playbooks/openstack-ansible-tasks.yaml .; ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i ~/inventory -l deployer -t deployer_bootstrap -f 15 -b openstack-ansible-tasks.yaml"
 ansible_os_prep:
 	ssh ansible-deployer "cd ansible-openstack-testing; ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i ~/inventory -f 15 -b openstack-ansible-tasks.yaml"

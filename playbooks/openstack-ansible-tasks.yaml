@@ -59,6 +59,16 @@
         regexp: '(^tmpfs.*)noexec,(.*)'
         replace: '#\1#\2'
 
+  handlers:
+    - name: restart ntpd
+      service: name=ntp state=restarted
+
+    - name: restart tinyproxy
+      service: name=tinyproxy state=restarted
+
+    - name: remount tmpfs
+      shell:  'mount -o remount /tmp'
+
 - hosts: deployer
   tasks:
   - name: Configure mgmt bridge
@@ -86,16 +96,6 @@
     with_items:
         - { line: "Listen {{ inventory_hostname }}", insertafter: '#Listen' }
         - { line: 'Allow 192.168.0.0/16', insertafter: 'Allow 127.0.0.1' }
-
-  handlers:
-    - name: restart ntpd
-      service: name=ntp state=restarted
-
-    - name: restart tinyproxy
-      service: name=tinyproxy state=restarted
-
-    - name: remount tmpfs
-      shell:  'mount -o remount /tmp'
 
 - hosts: osds
   tasks:
