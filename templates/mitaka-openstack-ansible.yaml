@@ -205,7 +205,7 @@ resources:
 outputs:
     deployer_ip:
         description: Ansible Deployer IP
-        value: { get_attr: [ deployer, first_address ] }
+        value: { get_attr: [ deployer, networks, mgmt, 0 ] }
     compute_ips:
         description: Compute IPs
         value: { get_attr: [computes, server_ip] }

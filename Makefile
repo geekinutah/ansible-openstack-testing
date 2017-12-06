@@ -1,5 +1,5 @@
 
-all: check_env deploy wait_30_seconds hostlist ssh_config ansible_inventory ansible_prep ansible_env_install
+all: check_env deploy wait_30_seconds hostlist ssh_config ansible_inventory ansible_deployer_prep ansible_os_prep ansible_env_install
 	echo "Done"
 check_env:
 	scripts/check_env.sh
@@ -15,7 +15,7 @@ ssh_config:
 	./scripts/make_ssh_config.py > ~/.ssh/config.d/ansibleStack 
 ansible_inventory:
 	./scripts/make_ansible_inventory.py > inventory
-ansible_prep:
+ansible_deployer_prep:
 	ssh ansible-deployer "sudo apt-get update"
 	ssh ansible-deployer "sudo DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::=\"--force-confold\" --force-yes -fuy dist-upgrade"
 	ssh ansible-deployer "sudo apt-get install -y aptitude build-essential git ntp ntpdate python-dev"
@@ -24,9 +24,12 @@ ansible_prep:
 	ssh ansible-deployer "cd /opt/openstack-ansible && sudo ./scripts/bootstrap-ansible.sh"
 	scp inventory ansible-deployer:./ 
 	ssh ansible-deployer "GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=no' git clone git@github.com:geekinutah/ansible-openstack-testing.git"
-	echo "Implement the rest of deployer automation"
+	ssh ansible-deployer "cd ansible-openstack-testing; cp playbooks/openstack-ansible-tasks.yaml .; ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i ~/inventory -l deployer -t deployer_bootstrap -f 15 -b openstack-ansible-tasks.yaml"
+ansible_os_prep:
+	ssh ansible-deployer "cd ansible-openstack-testing; ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i ~/inventory -f 15 -b openstack-ansible-tasks.yaml"
+	echo "Reboot everything"
 ansible_env_install:
-	echo "Implement me"
+	echo "Write openstack_user_config and variables, then run ansible everywhere"
 clean:
 	rm -f computes.json deployer.json controllers.json osds.json
 	rm -f ~/.ssh/config.d/ansibleStack

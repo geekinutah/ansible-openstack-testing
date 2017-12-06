@@ -13,10 +13,11 @@ for k in files.keys():
         f.close()
 
 print('[deployer]')
-print(files['deployer']['output_value'])
+deployer_ip = files['deployer']['output_value']
 del(files['deployer'])
+print('%s deployer_ip=%s' % (deployer_ip, deployer_ip))
 
 for k in files.keys():
     print('[%s]' % k)
     for ip in files[k]['output_value']:
-        print(ip)
+        print('%s deployer_ip=%s' % (ip, deployer_ip))
