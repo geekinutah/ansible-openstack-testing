@@ -55,9 +55,10 @@
   - name: Remove noexec from tmpfs mount options
     replace:
         path: /etc/fstab
-        notify: remount tmpfs
         regexp: '(^tmpfs.*)noexec,(.*)'
         replace: '#\1#\2'
+    notify: remount tmpfs
+
 
   handlers:
     - name: restart ntpd
