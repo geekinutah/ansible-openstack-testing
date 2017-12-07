@@ -32,10 +32,10 @@ ansible_os_prep:
 ansible_env_install:
 	echo "Write openstack_user_config and variables, then run ansible everywhere"
 clean:
-	rm -f computes.json deployer.json controllers.json osds.json
+	rm -f computes.json deployer.json controllers.json osds.json jumphost.json
 	rm -f ~/.ssh/config.d/ansibleStack
 	rm -f inventory
 clean_all: clean
-	openstack stack delete ansibleStack
+	openstack stack delete ansibleStack --yes
 wait_30_seconds:
 	sleep 30
