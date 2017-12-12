@@ -91,6 +91,12 @@
     tags:
       - deployer_bootstrap
 
+  - name: Start tinyproxy
+    service: name=tinyproxy state=started enabled=yes
+    tags:
+      - deployer_bootstrap
+
+
   - name: Configure tinyproxy
     lineinfile:
       path: /etc/tinyproxy.conf
