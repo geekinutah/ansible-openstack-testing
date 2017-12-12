@@ -44,11 +44,14 @@
       path: /etc/network/interfaces.d/50-cloud-init.cfg
       state: absent
 
+  - stat: path=/etc/nologin
+    register: cloudinitdisabled
+
   - name: Disable cloud-init
     file:
       path: /etc/cloud/cloud-init.disabled
       state: touch
-      when: p.stat.exists is defined and not p.stat.exists
+    when: cloudinitdisabled.stat.exists is defined and not cloudinitdisabled.stat.exists
 
   - name: Fix dhclient conf file
     template:
