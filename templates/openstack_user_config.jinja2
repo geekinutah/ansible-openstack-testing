@@ -1,13 +1,13 @@
 ---
 cidr_networks:
-  container: {{ mgmt_cidr }}
-  storage: {{ storage_cidr }}
-  tunnel: {{ vxlan_cidr }}
+  container: 192.168.10.0/24
+  storage: 192.168.11.0/24
+  tunnel: 192.168.13.0/24
 
 used_ips:
-  - {{ mgmt_reserved }}
-  - {{ storage_reserved }}
-  - {{ vxlan_reserved }}
+  - 192.168.10.199-192.168.10.254
+  - 192.168.11.199-192.168.11.254
+  - 192.168.13.199-192.168.13.254
 
 global_overrides:
   tunnel_bridge: "br-vxlan"
