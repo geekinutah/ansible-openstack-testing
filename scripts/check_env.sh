@@ -22,3 +22,21 @@ if [ -z `which python3` ]; then
     echo "This process requires installation of Python3. Please remedy."
     exit 1
 fi
+
+# Check and see if .ssh/config.d exists and is included
+
+if [ ! -d ~/.ssh/config.d ]; then
+    echo "I noticed that .ssh/config.d doesn't exist. This will make your life "
+    echo "harder as you attempt to work in this environment. As part of the    "
+    echo "installation process we create ssh aliases so you don't have to      "
+    echo "remember IP addresses."
+
+    echo "Please do the following:"
+    echo "   mkdir -p ~/.ssh/config.d/"
+    echo ""
+    echo "Then edit your .ssh/config so that this line is at the very top:"
+    echo "   Include ~/.ssh/config.d/*"
+    echo ""
+    echo "You can also use the following command:"
+    echo "   sed -i '1s/^/Include ~\/.ssh\/config.d\/*/' ~/.ssh/config"
+fi
