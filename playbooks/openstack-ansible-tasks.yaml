@@ -91,8 +91,8 @@
     tags:
       - deployer_bootstrap
 
-  - name: Start tinyproxy
-    service: name=tinyproxy state=started enabled=yes
+  - name: Stop tinyproxy
+    service: name=tinyproxy state=stopped enabled=yes
     tags:
       - deployer_bootstrap
 
@@ -102,15 +102,15 @@
       insertafter: "{{ item.insertafter }}"
       line: "{{ item.line }}"
       state: present
-    notify: restart tinyproxy
+    notify: start tinyproxy
     tags:
       - deployer_bootstrap
     with_items:
         - { line: "Listen {{ inventory_hostname }}", insertafter: '#Listen' }
         - { line: 'Allow 192.168.0.0/16', insertafter: 'Allow 127.0.0.1' }
   handlers:
-    - name: restart tinyproxy
-      service: name=tinyproxy state=restarted sleep=5
+    - name: start tinyproxy
+      service: name=tinyproxy state=started
 
 - hosts: osds
   tasks:
