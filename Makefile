@@ -24,7 +24,7 @@ ansible_deployer_prep:
 	ssh ansible-deployer "sudo sed -i 's/noexec,//g' /etc/fstab; sudo mount -oremount /tmp"
 	ssh ansible-deployer "cd /opt/openstack-ansible && sudo ./scripts/bootstrap-ansible.sh"
 	scp inventory ansible-deployer:./ 
-	ssh ansible-deployer "if [ \! -d ansible-openstack-testing ]; then GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=no' git clone git@github.com:geekinutah/ansible-openstack-testing.git;fi"
+	ssh ansible-deployer "if [ \! -d ansible-openstack-testing ]; then git clone https://geekinutah/ansible-openstack-testing.git;fi"
 	ssh ansible-deployer "cd ansible-openstack-testing; cp playbooks/openstack-ansible-tasks.yaml .; ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i ~/inventory -l deployer -t deployer_bootstrap -f 15 -b openstack-ansible-tasks.yaml"
 ansible_os_prep:
 	ssh ansible-deployer "cd ansible-openstack-testing; ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i ~/inventory -f 15 -b openstack-ansible-tasks.yaml"
