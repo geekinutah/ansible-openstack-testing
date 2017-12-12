@@ -96,7 +96,6 @@
     tags:
       - deployer_bootstrap
 
-
   - name: Configure tinyproxy
     lineinfile:
       path: /etc/tinyproxy.conf
@@ -111,7 +110,7 @@
         - { line: 'Allow 192.168.0.0/16', insertafter: 'Allow 127.0.0.1' }
   handlers:
     - name: restart tinyproxy
-      service: name=tinyproxy state=restarted
+      service: name=tinyproxy state=restarted sleep=5
 
 - hosts: osds
   tasks:
